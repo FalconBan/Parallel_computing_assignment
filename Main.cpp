@@ -11,8 +11,6 @@
 #include <case_2_runner.h>
 #include <case_3_runner.h>
 
-#include <windows.h>
-
 #include <cstdlib>
 #include <pthread.h>
 #include <sched.h>
