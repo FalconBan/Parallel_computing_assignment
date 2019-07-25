@@ -6,7 +6,6 @@
  */
 
 #include <multi_threaded.h>
-#include <list_test.h>
 #include <case_1_runner.h>
 #include <case_2_runner.h>
 #include <case_3_runner.h>
@@ -19,9 +18,6 @@
 #include <fstream>
 
 using namespace std;
-
-vector<unsigned>* g_remainingNumbers;
-vector<unsigned>* g_chosenNumbers;
 
 int main(int c, char** v)
 {

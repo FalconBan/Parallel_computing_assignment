@@ -1,8 +1,13 @@
 #pragma once
 
-#include <list>
-
 typedef unsigned data_type;
+
+struct node
+{
+	node(data_type val) { m_data = val; }
+	node* m_next = nullptr;
+	data_type m_data;
+};
 
 class linked_list
 {
@@ -11,14 +16,16 @@ public:
 	virtual ~linked_list() = default;
 
 	virtual void add(data_type val);
-	virtual const bool member(data_type val);
+	virtual const node* member(data_type val);
 	virtual void remove(data_type val);
-	virtual const data_type get_by_index(int index);
+	virtual const node* get_by_index(int index);
 	virtual void delete_member(int index);
-	virtual size_t get_node_count() { return m_list.size(); }
+	int get_node_count() { return m_node_count; }
 
 	virtual void print_list();
 
 protected:
-	std::list<data_type> m_list;
+	node* m_head = nullptr;
+	node* m_tail = nullptr;
+	int m_node_count = 0;
 };

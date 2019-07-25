@@ -8,55 +8,40 @@
 #include <atomic>
 #include <pthread.h>
 
-#include <linked_list_single_mutex.h>
+#include <linked_list.h>
 #include <single_threaded_test_fixture.h>
 
 using namespace std;
 
-extern vector<unsigned>* g_remainingNumbers;
-extern vector<unsigned>* g_chosenNumbers;
-
 namespace mutex
 {
-	pthread_mutex_t list_mutex;
-	linked_list_single_mutex m_list;
-	int m_cur_index = 0;
+	pthread_mutex_t m_list_mutex;
+	linked_list m_list;
 
 	pthread_mutex_t time_measure_lock;
 	int time_taken_us = 0;
 
 	void insert()
 	{
-		pthread_mutex_lock(&list_mutex);
-		m_list.add((*g_chosenNumbers)[m_cur_index]);
-		++m_cur_index;
-		pthread_mutex_unlock(&list_mutex);
+		pthread_mutex_lock(&m_list_mutex);
+		m_list.add(2);
+		pthread_mutex_unlock(&m_list_mutex);
 	}
 
 	void delete_member()
 	{
-		pthread_mutex_lock(&list_mutex);
-		auto node_count = m_list.get_node_count();
-
-		if (node_count != 0)
-		{
-			int index_to_delete = rand()%(node_count);
-			m_list.delete_member(index_to_delete);
-		}
-		pthread_mutex_unlock(&list_mutex);
+		pthread_mutex_lock(&m_list_mutex);
+		int index_to_delete = rand()%(m_list.get_node_count());
+		m_list.delete_member(index_to_delete);
+		pthread_mutex_unlock(&m_list_mutex);
 	}
 
 	void get_member()
 	{
-		pthread_mutex_lock(&list_mutex);
-		auto node_count = m_list.get_node_count();
-
-		if (node_count != 0)
-		{
-			int index_to_recall = rand()%(node_count);
-			m_list.get_by_index(index_to_recall);
-		}
-		pthread_mutex_unlock(&list_mutex);
+		pthread_mutex_lock(&m_list_mutex);
+		int index_to_recall = rand()%(m_list.get_node_count());
+		m_list.get_by_index(index_to_recall);
+		pthread_mutex_unlock(&m_list_mutex);
 	}
 
 	void* thread_function(void* operations_vector)
@@ -91,7 +76,7 @@ namespace mutex
 		void perform_operations(int thread_count, int range, int insert, int access, int del)
 		{
 			time_taken_us = 0;
-			generate_unique_random(static_cast<unsigned>(pow(2, 16)), range);
+			pthread_mutex_init(&m_list_mutex, NULL);
 
 			int total_operations = insert + access + del;
 			int operations_per_thread = total_operations/thread_count;
@@ -139,30 +124,7 @@ namespace mutex
 			chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
 			time_taken_us = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
 
-			delete g_chosenNumbers;
-			delete g_remainingNumbers;
-		}
-
-		void generate_unique_random(const unsigned int range, const unsigned int  numberToSelect)
-		{
-			g_remainingNumbers = new vector<unsigned>(range);
-			g_chosenNumbers = new vector<unsigned>(numberToSelect);
-
-			/* Initialise the list of possible choices */
-			for(unsigned i = 0; i < range; i++) (*g_remainingNumbers)[i] = i;
-
-			/* Now chose however many you want, without repeats */
-			for(unsigned i = 0; i < numberToSelect; i++){
-			   /* Generate a random number to select */
-			   int selectedElement = rand()%(range - i);
-
-			   /* Put it in the chosenNumbers vector */
-			   (*g_chosenNumbers)[i] = (*g_remainingNumbers)[selectedElement];
-
-			   /* Now erase this number from the possible numbers, so that it can't be chosen again */
-			   for(unsigned j = selectedElement; j < range - i - 1; j++)
-				  (*g_remainingNumbers)[j] = (*g_remainingNumbers)[j + 1];
-			}
+			pthread_mutex_destroy(&m_list_mutex);
 		}
 
 	private:
