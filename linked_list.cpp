@@ -4,148 +4,64 @@
 
 void linked_list::add(data_type val)
 {
-	if (m_head == nullptr)
-	{
-		m_head = new node(val);
-		m_tail = m_head;
-	}
-	else
-	{
-		m_tail->m_next = new node(val);
-		m_tail = m_tail->m_next;
-	}
-
-	++m_node_count;
+	m_list.push_back(val);
 }
 
-const node* linked_list::member(data_type val)
+const bool linked_list::member(data_type val)
 {
-	if (m_head)
+	for (auto entry : m_list)
 	{
-		auto cur_node = m_head;
-
-		while (cur_node)
-		{
-			if (cur_node->m_data == val)
-			{
-				return cur_node;
-			}
-			else
-				cur_node = cur_node->m_next;
-		}
+		if (entry == val)
+			return true;
 	}
 
-	return nullptr;
+	return false;
 }
 
 void linked_list::remove(data_type val)
 {
-	if (m_head)
-	{
-		auto cur_node = m_head;
-		node* prev_node = nullptr;
-
-		while (cur_node)
-		{
-			if (cur_node->m_data == val)
-			{
-				if (prev_node)
-				{
-					prev_node->m_next = cur_node->m_next;
-				}
-				else
-				{
-					m_head = cur_node->m_next;
-				}
-
-				delete cur_node;
-				cur_node = nullptr;
-				--m_node_count;
-			}
-			else
-			{
-				prev_node = cur_node;
-				cur_node = cur_node->m_next;
-			}
-		}
-	}
+	m_list.remove(val);
 }
 
 void linked_list::print_list()
 {
-	if (m_head)
+	for (auto itr = m_list.begin(); itr != m_list.end(); ++itr)
 	{
-		auto cur_node = m_head;
-
-		while (cur_node)
-		{
-			std::cout << cur_node->m_data << std::endl;
-			cur_node = cur_node->m_next;
-		}
+		std::cout << *itr << std::endl;
 	}
 }
 
 void linked_list::delete_member(int index)
 {
-	if (index < m_node_count)
+	if (index < m_list.size())
 	{
-		auto cur_node = m_head;
-		node* prev_node = nullptr;
 		int cur_index = 0;
-
-		while (true)
+		for (auto itr = m_list.begin(); itr != m_list.end(); ++itr)
 		{
-			if (cur_node == nullptr)
-				break;
-
 			if (cur_index == index)
 			{
-				if (prev_node)
-				{
-					prev_node->m_next = cur_node->m_next;
-				}
-				else
-				{
-					m_head = cur_node->m_next;
-				}
-
-				delete cur_node;
-				cur_node = nullptr;
-				--m_node_count;
+				m_list.remove(*itr);
+				break;
 			}
-			else
-			{
-				prev_node = cur_node;
-				cur_node = cur_node->m_next;
-				++cur_index;
-			}
+			++cur_index;
 		}
 	}
 }
 
-const node* linked_list::get_by_index(int index)
+const data_type linked_list::get_by_index(int index)
 {
-	if (index < m_node_count)
+	if (index < m_list.size())
 	{
-		auto cur_node = m_head;
 		int cur_index = 0;
-
-		while (true)
+		for (auto itr = m_list.begin(); itr != m_list.end(); ++itr)
 		{
-			if (cur_node == nullptr)
-				break;
-
 			if (cur_index == index)
 			{
-				return cur_node;
+				return *itr;
 			}
-			else
-			{
-				cur_node = cur_node->m_next;
-				++cur_index;
-			}
+			++cur_index;
 		}
 	}
 
-	return nullptr;
+	return 0;
 }

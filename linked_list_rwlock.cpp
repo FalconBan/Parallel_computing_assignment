@@ -7,7 +7,7 @@ void linked_list_rwlock::add(data_type val)
 	pthread_rwlock_unlock(&m_rwlock);
 }
 
-const node* linked_list_rwlock::member(data_type val)
+const bool linked_list_rwlock::member(data_type val)
 {
 	pthread_rwlock_rdlock(&m_rwlock);
 	const auto member = linked_list::member(val);
@@ -30,7 +30,7 @@ void linked_list_rwlock::delete_member(int index)
 	pthread_rwlock_unlock(&m_rwlock);
 }
 
-const node* linked_list_rwlock::get_by_index(int index)
+const data_type linked_list_rwlock::get_by_index(int index)
 {
 	pthread_rwlock_rdlock(&m_rwlock);
 	const auto member = linked_list::get_by_index(index);
@@ -45,4 +45,13 @@ void linked_list_rwlock::print_list()
 	pthread_rwlock_rdlock(&m_rwlock);
 	linked_list::print_list();
 	pthread_rwlock_unlock(&m_rwlock);
+}
+
+size_t linked_list_rwlock::get_node_count()
+{
+	pthread_rwlock_rdlock(&m_rwlock);
+	auto size = linked_list::get_node_count();
+	pthread_rwlock_unlock(&m_rwlock);
+
+	return size;
 }

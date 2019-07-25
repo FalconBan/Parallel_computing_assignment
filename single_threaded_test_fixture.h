@@ -17,7 +17,12 @@ extern vector<unsigned>* g_chosenNumbers;
 class single_threaded_test_fixture
 {
 public:
-	void perform_operations(int range, int insert_count, int access_count, int del_count)
+	single_threaded_test_fixture()
+	{
+		m_list = new linked_list;
+	}
+
+	virtual void perform_operations(int range, int insert_count, int access_count, int del_count)
 	{
 		generate_unique_random(static_cast<unsigned>(pow(2, 16)), range);
 
@@ -36,9 +41,6 @@ public:
 		{
 			all_operations[i] = 2;
 		}
-
-		//Randomize the vector
-		//std::random_shuffle(all_operations.begin(), all_operations.end());
 
 		chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 		for (auto operation : all_operations)
@@ -71,25 +73,25 @@ protected:
 
 	void insert()
 	{
-		m_list.add((*g_chosenNumbers)[m_cur_index]);
+		m_list->add((*g_chosenNumbers)[m_cur_index]);
 		++m_cur_index;
 	}
 
 	void delete_member()
 	{
-		if (m_list.get_node_count() != 0)
+		if (m_list->get_node_count() != 0)
 		{
-			int index_to_delete = rand()%(m_list.get_node_count());
-			m_list.delete_member(index_to_delete);
+			int index_to_delete = rand()%(m_list->get_node_count());
+			m_list->delete_member(index_to_delete);
 		}
 	}
 
 	void get_member()
 	{
-		if (m_list.get_node_count() != 0)
+		if (m_list->get_node_count() != 0)
 		{
-			int index_to_recall = rand()%(m_list.get_node_count());
-			m_list.get_by_index(index_to_recall);
+			int index_to_recall = rand()%(m_list->get_node_count());
+			m_list->get_by_index(index_to_recall);
 		}
 	}
 
@@ -115,7 +117,8 @@ protected:
 	    }
 	}
 
+	linked_list* m_list = nullptr;
+
 private:
-	linked_list m_list;
 	int m_cur_index = 0;
 };

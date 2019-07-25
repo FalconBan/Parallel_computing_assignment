@@ -17,6 +17,7 @@ extern vector<unsigned>* g_chosenNumbers;
 
 namespace rwlock
 {
+	pthread_rwlock_t list_rwlock;
 	linked_list_rwlock m_list;
 	int m_cur_index = 0;
 
@@ -25,20 +26,36 @@ namespace rwlock
 
 	void insert()
 	{
+		pthread_rwlock_wrlock(&list_rwlock);
 		m_list.add((*g_chosenNumbers)[m_cur_index]);
 		++m_cur_index;
+		pthread_rwlock_unlock(&list_rwlock);
 	}
 
 	void delete_member()
 	{
-		int index_to_delete = rand()%(m_list.get_node_count());
-		m_list.delete_member(index_to_delete);
+		pthread_rwlock_wrlock(&list_rwlock);
+		auto node_count = m_list.get_node_count();
+
+		if (node_count != 0)
+		{
+			int index_to_delete = rand()%(node_count);
+			m_list.delete_member(index_to_delete);
+		}
+		pthread_rwlock_unlock(&list_rwlock);
 	}
 
 	void get_member()
 	{
-		int index_to_recall = rand()%(m_list.get_node_count());
-		m_list.get_by_index(index_to_recall);
+		pthread_rwlock_rdlock(&list_rwlock);
+		auto node_count = m_list.get_node_count();
+
+		if (node_count != 0)
+		{
+			int index_to_recall = rand()%(node_count);
+			m_list.get_by_index(index_to_recall);
+		}
+		pthread_rwlock_unlock(&list_rwlock);
 	}
 
 	void* thread_function(void* operations_vector)
@@ -46,7 +63,6 @@ namespace rwlock
 		time_taken_us = 0;
 		auto operations_vec = (vector<int>*)(operations_vector);
 
-		chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 		for (auto operation:*(operations_vec))
 		{
 			switch (operation)
@@ -64,12 +80,6 @@ namespace rwlock
 				break;
 			}
 		}
-		chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-		int duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-
-		pthread_mutex_lock(&time_measure_lock);
-		time_taken_us = ((time_taken_us > duration) ? time_taken_us : duration);
-		pthread_mutex_unlock(&time_measure_lock);
 
 		return nullptr;
 	}
@@ -110,6 +120,8 @@ namespace rwlock
 				}
 			}
 
+			chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+
 			//Create the pthreads
 			m_threads = new pthread_t[thread_count];
 
@@ -122,6 +134,9 @@ namespace rwlock
 			{
 				pthread_join(m_threads[i], NULL);
 			}
+
+			chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+			time_taken_us = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
 
 			delete g_chosenNumbers;
 			delete g_remainingNumbers;

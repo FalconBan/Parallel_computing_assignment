@@ -11,8 +11,6 @@
 #include <case_2_runner.h>
 #include <case_3_runner.h>
 
-#include <windows.h>
-
 #include <cstdlib>
 #include <pthread.h>
 #include <sched.h>
@@ -29,7 +27,7 @@ int main(int c, char** v)
 {
 	int data_point_count = 100;
 
-	//run_case_1_scenarios(data_point_count);
+	run_case_1_scenarios(data_point_count);
 	run_case_2_scenarios(data_point_count);
 	run_case_3_scenarios(data_point_count);
 

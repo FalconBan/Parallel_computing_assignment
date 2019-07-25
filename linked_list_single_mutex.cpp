@@ -7,7 +7,7 @@ void linked_list_single_mutex::add(data_type val)
 	pthread_mutex_unlock(&m_mutex);
 }
 
-const node* linked_list_single_mutex::member(data_type val)
+const bool linked_list_single_mutex::member(data_type val)
 {
 	pthread_mutex_lock(&m_mutex);
 	const auto member = linked_list::member(val);
@@ -38,7 +38,7 @@ void linked_list_single_mutex::delete_member(int index)
 	pthread_mutex_unlock(&m_mutex);
 }
 
-const node* linked_list_single_mutex::get_by_index(int index)
+const data_type linked_list_single_mutex::get_by_index(int index)
 {
 	pthread_mutex_lock(&m_mutex);
 	const auto member = linked_list::get_by_index(index);

@@ -9,6 +9,7 @@
 #include <pthread.h>
 
 #include <linked_list_single_mutex.h>
+#include <single_threaded_test_fixture.h>
 
 using namespace std;
 
@@ -17,6 +18,7 @@ extern vector<unsigned>* g_chosenNumbers;
 
 namespace mutex
 {
+	pthread_mutex_t list_mutex;
 	linked_list_single_mutex m_list;
 	int m_cur_index = 0;
 
@@ -25,27 +27,42 @@ namespace mutex
 
 	void insert()
 	{
+		pthread_mutex_lock(&list_mutex);
 		m_list.add((*g_chosenNumbers)[m_cur_index]);
 		++m_cur_index;
+		pthread_mutex_unlock(&list_mutex);
 	}
 
 	void delete_member()
 	{
-		int index_to_delete = rand()%(m_list.get_node_count());
-		m_list.delete_member(index_to_delete);
+		pthread_mutex_lock(&list_mutex);
+		auto node_count = m_list.get_node_count();
+
+		if (node_count != 0)
+		{
+			int index_to_delete = rand()%(node_count);
+			m_list.delete_member(index_to_delete);
+		}
+		pthread_mutex_unlock(&list_mutex);
 	}
 
 	void get_member()
 	{
-		int index_to_recall = rand()%(m_list.get_node_count());
-		m_list.get_by_index(index_to_recall);
+		pthread_mutex_lock(&list_mutex);
+		auto node_count = m_list.get_node_count();
+
+		if (node_count != 0)
+		{
+			int index_to_recall = rand()%(node_count);
+			m_list.get_by_index(index_to_recall);
+		}
+		pthread_mutex_unlock(&list_mutex);
 	}
 
 	void* thread_function(void* operations_vector)
 	{
 		auto operations_vec = (vector<int>*)(operations_vector);
 
-		chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
 		for (auto operation:*(operations_vec))
 		{
 			switch (operation)
@@ -63,12 +80,6 @@ namespace mutex
 				break;
 			}
 		}
-		chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
-		int duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-
-		pthread_mutex_lock(&time_measure_lock);
-		time_taken_us = ((time_taken_us > duration) ? time_taken_us : duration);
-		pthread_mutex_unlock(&time_measure_lock);
 
 		return nullptr;
 	}
@@ -110,6 +121,8 @@ namespace mutex
 				}
 			}
 
+			chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+
 			//Create the pthreads
 			m_threads = new pthread_t[thread_count];
 
@@ -122,6 +135,9 @@ namespace mutex
 			{
 				pthread_join(m_threads[i], NULL);
 			}
+
+			chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+			time_taken_us = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
 
 			delete g_chosenNumbers;
 			delete g_remainingNumbers;
